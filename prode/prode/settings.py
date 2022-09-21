@@ -39,6 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Local APPs:
     'apuestas',
+    # Third party apps:
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -50,6 +53,16 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Por defecto, los endpoints de DRF utilizan IsAuthenticated
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+       # 'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
+
 
 ROOT_URLCONF = 'prode.urls'
 
