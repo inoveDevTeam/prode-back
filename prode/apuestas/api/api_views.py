@@ -1,6 +1,8 @@
 # Primero, importamos los serializadores
 
 # Segundo, importamos los modelos:
+from http.client import HTTPResponse
+from textwrap import indent
 from django.contrib.auth.models import User
 from apuestas.models import *
 
@@ -20,6 +22,8 @@ from rest_framework.parsers import JSONParser
 # Librerías para gestionar los tokens en el login
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
+
+from django.utils import timezone
 
 
 class LoginUserAPIView(APIView):
@@ -69,3 +73,176 @@ class LoginUserAPIView(APIView):
             user_data['response'] = 'Error'
             #user_data['error_message'] = error
             return JsonResponse(user_data, status=status.HTTP_400_BAD_REQUEST)
+
+
+class  PartidosAPIView(APIView):
+    """lista de partidos (en cada uno se especifica si se pueda apostar o si ya está terminado)"""
+    
+    def get(self, request):
+
+        if request.method == 'GET':
+            try:          
+                # Buscar todas los partidos
+                datos = list(Partido.objects.values()) 
+                data = {}
+                data['data'] = datos 
+               
+                return JsonResponse(data, status=status.HTTP_201_CREATED)
+
+            except:
+                data['response'] = 'Error'
+                return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PronosticosAPIView(APIView):
+    
+    def get(self, request):
+
+        if request.method == 'GET':
+            """ Retorna la lista de mis apuestas(por usuario) con sus puntajes"""
+            try:
+                datos = list(Pronostico.objects.values()) 
+                data = {}
+                
+                contador = 1
+                mis_apuestas = []
+                dict_data = []
+
+                for diccionario in datos:
+                    for k,v in diccionario.items():
+                        
+                        dict_data = {"pronostic_equipo_1":diccionario["pronostico_equipo_1"], 
+                                "pronostico_equipo_2":diccionario["pronostico_equipo_2"], 
+                                "puntaje":diccionario["puntaje"], 
+                                "partido_id":diccionario["partido_id"]}
+                
+
+                        if diccionario['usuario_id'] == contador:
+                            mis_apuestas.append(dict_data)
+                            data[f'user_{contador}']= mis_apuestas
+                            break
+
+                        else:
+                            # Pasa al siguiente usuario y se vacia la lista de apuesta para el siguientes usuario.
+                            contador +=1
+                            mis_apuestas = []
+                            mis_apuestas.append(dict_data)
+                            data[f'user_{contador}']= mis_apuestas
+                            break
+                                       
+                return JsonResponse(data, status=status.HTTP_201_CREATED)
+
+            except:
+                data['response'] = 'Error'
+                return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PronosticosIdAPIView(APIView): 
+    
+    def put(self, request, pk, t1, t2):
+                
+        if request.method == 'PUT':
+            """ Modificar apuesta resultado_equipo_1 y resultado_equipo_2 """ #verificar si es resultado o pronostico
+            
+            try:
+                # Busca por id y actualiza los pronosticos
+                Pronostico.objects.values().filter(id=pk).update(pronostico_equipo_1 = t1,
+                                                                        pronostico_equipo_2 = t2)
+                # Verificar si se hizo la actualización
+                update = Pronostico.objects.values().filter(id=pk).first()
+                data = {}
+                data['update'] = update 
+                print(data)   
+
+                return Response(data, status=status.HTTP_201_CREATED)
+                
+            except:
+                data['response'] = 'Error'
+                return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class PronosticosApustaAPIView(APIView):
+
+    def post(self, request, user, e1, e2, p1, p2, punto):
+        """Crear apuesta"""
+        data = {}
+        if request.method == 'POST':
+            try:
+                
+                # 1Crear usuario con parámetro user
+                user_filter=User.objects.values().filter(username=user).exists()
+                
+                if user_filter is False:
+                    User.objects.create_user(user, password="prode1234")
+
+                # 2Necesito el id
+                usuario_reg= User.objects.get(username=user) #Retorna toda la info del usuario como objeto usuario_reg.id
+                
+
+                # 3Verificar si los equipos estan registrados
+                equipo_filter_1 = Equipo.objects.values().filter(name=e1).exists()
+                equipo_filter_2 = Equipo.objects.values().filter(name=e2).exists()
+
+                if (equipo_filter_1 and equipo_filter_2) is False:
+                    Equipo.objects.create(name=e1)
+                    Equipo.objects.create(name=e2)
+
+                if equipo_filter_1 is True and equipo_filter_2 is False:
+                    Equipo.objects.create(name=e2)
+
+                elif equipo_filter_1 is False and equipo_filter_2 is True:
+                    Equipo.objects.create(name=e1)
+
+                # EQUIPOS YA REGISTRADOS
+                equipo_1 =Equipo.objects.get(name=e1) #Retorna objeto y se accede al id --> equipo_1.id
+
+                equipo_2 = Equipo.objects.get(name=e2)  #Retorna objeto y se accede al id --> equipo_2.id
+               
+                # 4Armar partido
+                # Se necesita el nombre del torneo y id 
+                copa_age = Torneo.objects.get(name='Copa Age 2020') # Objeto copa_age y se accede al id --> copa_age.id)
+
+                # # verificar si hay partido armado con ambos equipos y si partido_filter is False crea el  partido
+                partido_filter=Partido.objects.filter(equipo_1 = equipo_1.id, 
+                                                      equipo_2 = equipo_2.id).exists()
+              
+
+                # Sino hay partido lo crea
+                if partido_filter is False:
+                    
+                    Partido.objects.create(
+                                        torneo = copa_age,
+                                        equipo_1 = equipo_1,
+                                        equipo_2 = equipo_2,
+                                        fecha = timezone.now(),
+                                        resultado_equipo_1 = 0,
+                                        resultado_equipo_2 = 0,
+                                        )
+
+                # Se necesita obtener el id del partido
+                # Se buscar el partido recién registrado con los dos equipos objetos, pasados por parámetro partido_new.id  
+                partido_new = Partido.objects.get(equipo_1=equipo_1.id, equipo_2 = equipo_2.id) 
+                print(partido_new.id)
+
+                #4crear apuesta
+                
+                Pronostico.objects.create(
+                                        usuario = usuario_reg, #Objeto completo
+                                        partido = partido_new, #Objeto completo
+                                        pronostico_equipo_1 = p1,
+                                        pronostico_equipo_2 = p2,
+                                        puntaje = punto,
+                                    )
+
+                return Response(data, status=status.HTTP_201_CREATED)
+
+
+            except:
+                data['response'] = 'Error'
+                return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
