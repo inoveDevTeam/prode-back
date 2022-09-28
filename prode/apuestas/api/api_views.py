@@ -166,14 +166,19 @@ class PronosticosApustaAPIView(APIView):
     def post(self, request, user, e1, e2, p1, p2, punto):
         """Crear apuesta"""
         data = {}
+        print(user, e1, e2, p1, p2, punto)
         if request.method == 'POST':
             try:
                 
                 # 1Crear usuario con parámetro user
                 user_filter=User.objects.values().filter(username=user).exists()
-                
+                print(user_filter)
                 if user_filter is False:
                     User.objects.create_user(user, password="prode1234")
+                
+                else: 
+                    usuario_reg= User.objects.get(username=user)
+                    print(usuario_reg.username)
 
                 # 2Necesito el id
                 usuario_reg= User.objects.get(username=user) #Retorna toda la info del usuario como objeto usuario_reg.id
@@ -182,8 +187,9 @@ class PronosticosApustaAPIView(APIView):
                 # 3Verificar si los equipos estan registrados
                 equipo_filter_1 = Equipo.objects.values().filter(name=e1).exists()
                 equipo_filter_2 = Equipo.objects.values().filter(name=e2).exists()
+                print(equipo_filter_1, equipo_filter_2)
 
-                if (equipo_filter_1 and equipo_filter_2) is False:
+                if equipo_filter_1 is False and equipo_filter_2 is False:
                     Equipo.objects.create(name=e1)
                     Equipo.objects.create(name=e2)
 
@@ -192,21 +198,25 @@ class PronosticosApustaAPIView(APIView):
 
                 elif equipo_filter_1 is False and equipo_filter_2 is True:
                     Equipo.objects.create(name=e1)
-
+                    
                 # EQUIPOS YA REGISTRADOS
-                equipo_1 =Equipo.objects.get(name=e1) #Retorna objeto y se accede al id --> equipo_1.id
+                equipos = list(Equipo.objects.values())
+                #print(equipos)
 
-                equipo_2 = Equipo.objects.get(name=e2)  #Retorna objeto y se accede al id --> equipo_2.id
-               
+                equipo_1 =Equipo.objects.filter(name=e1).first() # Retorna objeto y se accede al id --> equipo_1.id
+                print(equipo_1.id)
+                equipo_2 = Equipo.objects.filter(name=e2).first()  # Retorna objeto y se accede al id --> equipo_2.id
+                print(equipo_2.id)
+                
                 # 4Armar partido
                 # Se necesita el nombre del torneo y id 
                 copa_age = Torneo.objects.get(name='Copa Age 2020') # Objeto copa_age y se accede al id --> copa_age.id)
-
+                print(copa_age)
                 # # verificar si hay partido armado con ambos equipos y si partido_filter is False crea el  partido
                 partido_filter=Partido.objects.filter(equipo_1 = equipo_1.id, 
                                                       equipo_2 = equipo_2.id).exists()
               
-
+                print(partido_filter)
                 # Sino hay partido lo crea
                 if partido_filter is False:
                     
@@ -218,31 +228,58 @@ class PronosticosApustaAPIView(APIView):
                                         resultado_equipo_1 = 0,
                                         resultado_equipo_2 = 0,
                                         )
+                    # Se necesita obtener el id del partido
+                    # Se buscar el partido recién registrado con los dos equipos objetos, pasados por parámetro partido_new.id  
+                    partido = Partido.objects.get(equipo_1=equipo_1.id, equipo_2 = equipo_2.id) 
+                    print(partido.id)
 
-                # Se necesita obtener el id del partido
-                # Se buscar el partido recién registrado con los dos equipos objetos, pasados por parámetro partido_new.id  
-                partido_new = Partido.objects.get(equipo_1=equipo_1.id, equipo_2 = equipo_2.id) 
-                print(partido_new.id)
+                else:
+                    partido = Partido.objects.filter(
+                                        torneo = copa_age,
+                                        equipo_1 = equipo_1,
+                                        equipo_2 = equipo_2).first()
+
+                    print('id partido', partido.id)
+
 
                 #4crear apuesta
-                
-                Pronostico.objects.create(
+                prono_existe =Pronostico.objects.filter(
                                         usuario = usuario_reg, #Objeto completo
-                                        partido = partido_new, #Objeto completo
+                                        partido = partido, #Objeto completo
                                         pronostico_equipo_1 = p1,
                                         pronostico_equipo_2 = p2,
                                         puntaje = punto,
-                                    )
+                                    ).exists()
 
+                #print('Existe pronostico?',prono_existe)
+
+                if prono_existe is False:
+                    Pronostico.objects.create(
+                                            usuario = usuario_reg, #Objeto completo
+                                            partido = partido, #Objeto completo
+                                            pronostico_equipo_1 = p1,
+                                            pronostico_equipo_2 = p2,
+                                            puntaje = punto,
+                                        )
+
+                    data = Pronostico.objects.values(usuario=usuario_reg, 
+                                                    partido = partido,
+                                                    pronostico_equipo_1 = p1,
+                                                    pronostico_equipo_2 = p2,
+                                                    puntaje = punto,).values()
+                    
+
+                else:
+                    data =Pronostico.objects.filter(
+                                        usuario = usuario_reg, #Objeto completo
+                                        partido = partido, #Objeto completo
+                                        pronostico_equipo_1 = p1,
+                                        pronostico_equipo_2 = p2,
+                                        puntaje = punto,).values()
+                print(data)
                 return Response(data, status=status.HTTP_201_CREATED)
 
 
             except:
                 data['response'] = 'Error'
                 return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
-
