@@ -1,7 +1,7 @@
 import json
 import requests
 
-token = "ce8aec0a47ee26b03f2fe7f4038ba392bba95ed9"
+token = "c52ec8d3fdbfdaf776b869a41fb7c5de48592c5d"
 headers = {
     'Authorization': f'Token {token}',
     "Content-Type": "application/json"
