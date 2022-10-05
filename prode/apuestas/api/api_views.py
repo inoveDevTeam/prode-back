@@ -176,3 +176,40 @@ class PartidosPronosticosAPIView(APIView):
             # HC --> ya que no retornamos ninguna información de valor,
             # no retornemos ninguna (hay que investigar como mejorar esto)
             return JsonResponse(data={}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RankingAPIView(APIView): 
+    parser_classes = (JSONParser,)
+    
+    def get(self, request):
+        """ Retorna la lista de mis apuestas(por usuario) con sus puntajes"""
+        try:
+            user = request.user
+
+            ranking = Pronostico.objects.values("usuario__username", "usuario__first_name", "usuario__last_name").annotate(puntaje_total=Sum('puntaje')).order_by("-puntaje_total")
+
+            data = {"puntaje": 0, "posicion": None, "ranking": []}
+            for i, pos in enumerate(ranking):
+                dict_data = {
+                    "username": pos["usuario__username"],
+                    "posicion": i+1,
+                    "first_name": pos["usuario__first_name"],
+                    "last_name": pos["usuario__last_name"],
+                    "puntaje_total": pos["puntaje_total"]
+                }
+                data["ranking"].append(dict_data)
+
+                if pos["usuario__username"] == user.username:
+                    print(pos)
+                    data["puntaje"] = pos["puntaje_total"]
+                    data["posicion"] = i+1
+
+            return JsonResponse(data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(f"{fname} {exc_tb.tb_lineno} {e}") # esto lo vamos a mejorar con logging
+            # HC --> ya que no retornamos ninguna información de valor,
+            # no retornemos ninguna (hay que investigar como mejorar esto)
+            return JsonResponse(data={}, status=status.HTTP_400_BAD_REQUEST)
