@@ -1,5 +1,7 @@
 import os
 import sys
+import locale
+
 # Primero, importamos los serializadores
 #from apuestas.api.serializers import *
 
@@ -98,6 +100,8 @@ class PartidosPronosticosAPIView(APIView):
             # Buscar los pronosticos del user
             pronosticos = Pronostico.objects.filter(usuario=user).order_by("partido__fecha")
 
+            locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
+
             # Recorre los partidos guardados
             for match in datos_partidos:
 
@@ -109,16 +113,15 @@ class PartidosPronosticosAPIView(APIView):
                     estado = 2
 
                 dict_partidos = {
-                    "partido": match.id,
+                    "partido_id": match.id,
                     "torneo_name": match.torneo.name,
                     "equipo_1": match.equipo_1.name,
                     "equipo_2": match.equipo_2.name,
-                    "fecha": match.fecha,
+                    "fecha": timezone.localtime(match.fecha).strftime('%A %d, %B %Y %H:%M'),
                     "descripcion": match.descripcion,
-                    "cerrado": match.cerrado,
+                    "estado": estado,
                     "resultado_equipo_1": match.resultado_equipo_1,
                     "resultado_equipo_2": match.resultado_equipo_2,
-                    "terminado": match.terminado,
                     # Se muestra que no está apostado
                     "pronostico_equipo_1": None,
                     "pronostico_equipo_2": None,
@@ -127,14 +130,12 @@ class PartidosPronosticosAPIView(APIView):
 
                 for pronostico in pronosticos: # Recorre los pronosticos guardados del user
                     partido_forecast = pronostico.partido # Patidos pronosticados por el user
-                
+
                     if match.id == partido_forecast.id: # Si el nro de partido es igual al partido apostado
                         # Actualiza en los datos los campos apostados por el usuario
-                        dict_partidos = {
-                            "pronostico_equipo_1": pronostico.pronostico_equipo_1,
-                            "pronostico_equipo_2": pronostico.pronostico_equipo_2,
-                            "puntaje": pronostico.puntaje
-                            }
+                        dict_partidos["pronostico_equipo_1"] = pronostico.pronostico_equipo_1,
+                        dict_partidos["pronostico_equipo_2" ] = pronostico.pronostico_equipo_2,
+                        dict_partidos["puntaje"] = pronostico.puntaje
                         break
 
                 data.append(dict_partidos)
