@@ -29,6 +29,7 @@ from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 
 from django.utils import timezone
+from django.db.models import Sum
 
 
 class LoginUserAPIView(APIView):
