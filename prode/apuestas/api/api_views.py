@@ -90,8 +90,7 @@ class PartidosPronosticosAPIView(APIView):
             # El usuario lo sacamos del request, 
             user = request.user  
 
-            partidos_disponibles = []
-            partidos_apostados = []
+            data = []
             
             # Buscar todas los partidos
             datos_partidos = Partido.objects.all().order_by("fecha")
@@ -101,66 +100,46 @@ class PartidosPronosticosAPIView(APIView):
 
             # Recorre los partidos guardados
             for match in datos_partidos:
+
+                if match.cerrado == False and match.terminado == False:
+                    estado = 0
+                elif match.cerrado == True and match.terminado == False:
+                    estado = 1
+                else:
+                    estado = 2
+
+                dict_partidos = {
+                    "partido": match.id,
+                    "torneo_name": match.torneo.name,
+                    "equipo_1": match.equipo_1.name,
+                    "equipo_2": match.equipo_2.name,
+                    "fecha": match.fecha,
+                    "descripcion": match.descripcion,
+                    "cerrado": match.cerrado,
+                    "resultado_equipo_1": match.resultado_equipo_1,
+                    "resultado_equipo_2": match.resultado_equipo_2,
+                    "terminado": match.terminado,
+                    # Se muestra que no está apostado
+                    "pronostico_equipo_1": None,
+                    "pronostico_equipo_2": None,
+                    "puntaje": 0
+                    }
+
                 for pronostico in pronosticos: # Recorre los pronosticos guardados del user
                     partido_forecast = pronostico.partido # Patidos pronosticados por el user
                 
                     if match.id == partido_forecast.id: # Si el nro de partido es igual al partido apostado
-                        # Guardará en una lista de diccionario todos los partidos apostados y sino muestra los 
-                        # Partidos disponibles (no apostados) 
-
-                        if partido_forecast.cerrado == False and partido_forecast.terminado == False:
-                            estado = 0
-                        elif partido_forecast.cerrado == True and partido_forecast.terminado == False:
-                            estado = 1
-                        else:
-                            estado = 2
-
-                        pronostico_user = {
-                            "partido_id": partido_forecast.id,
-                            "torneo_name": partido_forecast.torneo.name,
-                            "equipo_1_name": partido_forecast.equipo_1.name,
-                            "equipo_2_name": partido_forecast.equipo_2.name,
-                            "fecha": partido_forecast.fecha,
-                            "descripcion": partido_forecast.descripcion,
-                            "estado": estado,
-                            "resultado_equipo_1": partido_forecast.resultado_equipo_1,
-                            "resultado_equipo_2": partido_forecast.resultado_equipo_2,
+                        # Actualiza en los datos los campos apostados por el usuario
+                        dict_partidos = {
                             "pronostico_equipo_1": pronostico.pronostico_equipo_1,
                             "pronostico_equipo_2": pronostico.pronostico_equipo_2,
                             "puntaje": pronostico.puntaje
                             }
+                        break
 
-                        partidos_apostados.append(pronostico_user)
-                        
+                data.append(dict_partidos)
 
-                    else:
-                        
-                        dict_partidos = {
-                            "partido": match.id,
-                            "torneo_name": match.torneo.name, 
-                            "equipo_1": match.equipo_1.name,
-                            "equipo_2": match.equipo_2.name,
-                            "fecha": match.fecha,
-                            "descripcion": match.descripcion,
-                            "cerrado": match.cerrado,
-                            "resultado_equipo_1": match.resultado_equipo_1,
-                            "resultado_equipo_2": match.resultado_equipo_2,
-                            "terminado": match.terminado,
-                            # Se muestra que no está apostado 
-                            "pronostico_equipo_1": None,
-                            "pronostico_equipo_2": None,
-                            "puntaje": 0             
-                            }
-
-                        if dict_partidos in partidos_disponibles:
-                            pass
-                        else:
-                            partidos_disponibles.append(dict_partidos)
-
-            # print('apostados', partidos_apostados)
-            # print('disponibles', partidos_disponibles)                                                              
-           
-            return JsonResponse({'data':['apostados', partidos_apostados, 'disponibles', partidos_disponibles]}, status=status.HTTP_200_OK, safe=False)
+            return JsonResponse({"data": data}, status=status.HTTP_200_OK)
         
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
