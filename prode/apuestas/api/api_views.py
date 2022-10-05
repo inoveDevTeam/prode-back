@@ -80,6 +80,8 @@ class LoginUserAPIView(APIView):
 
 class PartidosPronosticosAPIView(APIView):
     """lista de partidos apostados y no apostados"""
+    
+    parser_classes = (JSONParser,)
 
     # HC --> Realizamos directamente el "get", exista o no exista el pronostico
     def get(self, request):
