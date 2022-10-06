@@ -3,6 +3,18 @@ from django.db import models
 # Debemos importarlo previamente:
 from django.contrib.auth.models import User
 
+class Configuracion(models.Model):
+    '''Esta clase hereda de Django models.Model y crea una tabla llamada
+    configuracion'''
+
+    id = models.BigAutoField(primary_key=True)
+    name = models.CharField(max_length=60, default='')
+    value = models.CharField(max_length=60, default='')
+    descripcion = models.CharField(max_length=150, default='', blank=True)
+   
+    class Meta:
+        db_table = 'configuracion'
+
 
 class Torneo(models.Model):
     '''Esta clase hereda de Django models.Model y crea una tabla llamada
@@ -51,7 +63,7 @@ class Partido(models.Model):
         db_table = 'partido'
             
     def __str__(self):
-        return f'{self.id} {self.torneo} {self.equipo_1} {self.equipo_2} {self.resultado_equipo_1} {self.resultado_equipo_2}'
+        return f'{self.id} {self.fecha} {self.equipo_1} {self.equipo_2} resultado: {self.resultado_equipo_1} / {self.resultado_equipo_2}'
 
 
 class Pronostico(models.Model):
@@ -69,4 +81,4 @@ class Pronostico(models.Model):
         db_table = 'pronostico'
             
     def __str__(self):
-        return f'{self.id} {self.partido_id} {self.pronostico_equipo_1} {self.pronostico_equipo_2} {self.puntaje}'
+        return f'id: {self.id} fecha: {self.partido.fecha} {self.usuario.username} apuesta: {self.pronostico_equipo_1} / {self.pronostico_equipo_2} puntaje:{self.puntaje}'
