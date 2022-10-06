@@ -3,6 +3,18 @@ from django.db import models
 # Debemos importarlo previamente:
 from django.contrib.auth.models import User
 
+class Configuracion(models.Model):
+    '''Esta clase hereda de Django models.Model y crea una tabla llamada
+    configuracion'''
+
+    id = models.BigAutoField(primary_key=True)
+    name = models.CharField(max_length=60, default='')
+    value = models.CharField(max_length=60, default='')
+    descripcion = models.CharField(max_length=150, default='', blank=True)
+   
+    class Meta:
+        db_table = 'configuracion'
+
 
 class Torneo(models.Model):
     '''Esta clase hereda de Django models.Model y crea una tabla llamada

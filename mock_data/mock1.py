@@ -3,9 +3,28 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import datetime
 
+admin = User.objects.create_user("admin", password="prode1234", is_staff=True, is_superuser=True)
 hernan = User.objects.create_user("hernan", password="prode1234")
 johana = User.objects.create_user("johana", password="prode1234")
 santiago = User.objects.create_user("santiago", password="prode1234")
+
+Configuracion.objects.create(
+    name="puntos_ganador",
+    value="5",
+    descripcion="Puntos asociados a acertar quien gana el partido"
+    )
+
+Configuracion.objects.create(
+    name="puntos_resultado_exacto",
+    value="10",
+    descripcion="Puntos asociados a acertar exactamente el resultado"
+    )
+
+Configuracion.objects.create(
+    name="tiempo_cierre_apuestas",
+    value="30",
+    descripcion="Hasta cuanto tiempo antes del partido puede apostar los usuarios"
+    )
 
 copa_age = Torneo.objects.create(name="Copa Age 2020")
 
