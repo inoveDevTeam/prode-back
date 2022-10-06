@@ -7,7 +7,7 @@ headers = {
     "Content-Type": "application/json"
 }
 
-url = "http://127.0.0.1:8000/api/v1.0/partidos/pronosticos/"
+url = "http://127.0.0.1:8000/api/v1.0/ranking/"
 
 resp = requests.get(url, headers=headers)
 print(resp.status_code)
