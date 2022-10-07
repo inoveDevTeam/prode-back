@@ -59,6 +59,33 @@ class Partido(models.Model):
     resultado_equipo_2 = models.PositiveIntegerField(default=None, blank=True, null=True)
     terminado =  models.BooleanField(default=False, blank=True)
 
+    def save(self, *args, **kwargs):
+        # Verificar si hay que calcular el puntaje
+        # (si el partido ha terminado)
+        if self.terminado == True:
+            # Resultado del partido
+            resultado_equipo_1 = self.resultado_equipo_1
+            resultado_equipo_2 = self.resultado_equipo_2
+
+            # Buscar todos las apuestas hechas sobre este partido
+            # y computar el puntaje
+            pronosticos = Pronostico.objects.filter(partido__id=self.id)
+            for pronostico in pronosticos:
+                pronostico_equipo_1 = pronostico.pronostico_equipo_1
+                pronostico_equipo_2 = pronostico.pronostico_equipo_2
+                puntaje = 0
+
+                # Calcular el puntaje
+
+
+                # Almacenamos el puntaje calculado
+                pronostico.puntaje = puntaje
+                pronostico.save()
+
+
+        # Guardar los cambios
+        super().save(*args, **kwargs)
+
     class Meta:
         db_table = 'partido'
             
