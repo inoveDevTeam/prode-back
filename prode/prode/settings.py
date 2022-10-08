@@ -26,24 +26,31 @@ SECRET_KEY = 'django-insecure-c&-!se7xlg&6%6+aec--qheyes$%=3t8h%ijpbc-p4_7$*8!lq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
-INSTALLED_APPS = [
+DEFAULT_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Local APPs:
-    'apuestas',
-    # Third party apps:
+]
+
+THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
+    'corsheaders',
 ]
+
+LOCAL_APPS = [
+    'apuestas',
+]
+
+INSTALLED_APPS = DEFAULT_APPS + LOCAL_APPS + THIRD_PARTY_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -53,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware'
 ]
 
 REST_FRAMEWORK = {
@@ -65,6 +73,13 @@ REST_FRAMEWORK = {
     ),
 }
 
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ALLOW_HEADERS = ['*', 'x-api-key', 'X-Api-Key', 'Authorization', 'Content-Type', 'Access-Control-Allow-Origin']
+
+CORS_EXPOSE_HEADERS = ['*', 'x-api-key', 'X-Api-Key', 'Authorization', 'Content-Type', 'Access-Control-Allow-Origin']
+
+CORS_ALLOW_HOSTS = ['*']
 
 ROOT_URLCONF = 'prode.urls'
 
@@ -93,7 +108,7 @@ WSGI_APPLICATION = 'prode.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '../db.sqlite3',
+        'NAME': '../db/db.sqlite3',
     }
 }
 
