@@ -13,6 +13,9 @@ server {
     ssl_certificate_key /etc/ssl/inove.com.ar/privkey.pem;
 
 	server_name wololo.inove.com.ar;
+    
+    # http redirect to https
+    return 301 https://$host$request_uri;
 
     # Probar que se logea
     access_log /var/log/nginx/access.log;
@@ -37,9 +40,9 @@ server {
         proxy_redirect off;
     }
 
-    #location /static/ {
-    #    alias <path_django>/STATIC_ROOT/;
-    #}
+    location /static/ {
+        alias /home/prode-back/prode/staticfiles/;
+    }
 
     # probar si esto sirve
     location /favicon.ico {
