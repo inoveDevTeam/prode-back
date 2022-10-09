@@ -2,7 +2,7 @@ version: "3.1"
 
 services:
   back:
-    build: ./prode
+    build: .
     image: prode-back:latest
     container_name: prode-back
     #restart: always
