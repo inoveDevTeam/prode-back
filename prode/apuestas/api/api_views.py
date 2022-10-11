@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import os
 import sys
 import locale
@@ -30,6 +31,9 @@ from rest_framework.authtoken.models import Token
 
 from django.utils import timezone
 from django.db.models import Sum
+
+# Librería para trabajar con tiempo
+from datetime import timedelta, datetime
 
 
 class LoginUserAPIView(APIView):
@@ -157,26 +161,35 @@ class PartidosPronosticosAPIView(APIView):
 
         try:
             user = request.user
-
             partido_id = int(request.data['partido_id'])
             pronostico_equipo_1 = int(request.data['pronostico_equipo_1'])
             pronostico_equipo_2 = int(request.data['pronostico_equipo_2'])
-         
-            Pronostico.objects.filter(partido=partido_id, usuario=user).update( 
+            
+            fecha_actual = datetime.now()
+            partido = Partido.objects.get(id=partido_id)        # Se busca el objeto del partido cuyo id se pasa por parámetro
+            fecha_partido = partido.fecha                       # Se extrae del objeto la fecha del partido
+            limite_min = Configuracion.objects.get(value="30")  # Se busca objeto cuyo value="30", lo 30min para limite de tiempo
+            minutos = limite_min.value                          #Se extrae del objeto los minutos(30)
+            minutos = timedelta(minutes=int(minutos))
+            
+            if (fecha_actual + minutos) < fecha_partido:
+                Pronostico.objects.filter(partido=partido_id, usuario=user).update( 
                                                    pronostico_equipo_1=pronostico_equipo_1,
                                                    pronostico_equipo_2=pronostico_equipo_2
                                                    )
 
-           
-            return JsonResponse(data={}, status=status.HTTP_200_OK)
-
+                return JsonResponse(data={}, status=status.HTTP_200_OK)
+            
+            else:
+                return JsonResponse(data={}, status=status.HTTP_422_UNPROCESSABLE_ENTITY) # Indica que el servidor comprende el tipo de contenido de la entidad de solicitud y la sintaxis de la entidad de solicitud es correcta, pero no pudo procesar las instrucciones contenidas.
+                
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(f"{fname} {exc_tb.tb_lineno} {e}") # esto lo vamos a mejorar con logging
             # HC --> ya que no retornamos ninguna información de valor,
             # no retornemos ninguna (hay que investigar como mejorar esto)
-            return JsonResponse(data={}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={}, status=status.HTTP_400_BAD_REQUEST) 
 
 
 class RankingAPIView(APIView): 
