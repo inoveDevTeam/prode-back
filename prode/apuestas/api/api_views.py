@@ -170,7 +170,8 @@ class PartidosPronosticosAPIView(APIView):
 
             # Se busca el objeto del partido cuyo id se pasa por parámetro, para así obtener la fecha del partido
             partido = Partido.objects.get(id=partido_id)        
-            fecha_partido = partido.fecha  
+            fecha_partido = partido.fecha 
+            fecha_partido = timezone.localtime(partido.fecha) 
             print(partido)                     
             print('fp',fecha_partido)
 
