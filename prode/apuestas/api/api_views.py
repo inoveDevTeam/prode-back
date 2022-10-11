@@ -34,6 +34,7 @@ from django.db.models import Sum
 
 # Librería para trabajar con tiempo
 from datetime import timedelta, datetime
+import time
 
 
 class LoginUserAPIView(APIView):
@@ -166,29 +167,56 @@ class PartidosPronosticosAPIView(APIView):
             pronostico_equipo_2 = int(request.data['pronostico_equipo_2'])
             
             fecha_actual = datetime.now()
-            partido = Partido.objects.get(id=partido_id)        # Se busca el objeto del partido cuyo id se pasa por parámetro
-            fecha_partido = partido.fecha                       # Se extrae del objeto la fecha del partido
-            limite_min = Configuracion.objects.get(value="30")  # Se busca objeto cuyo value="30", lo 30min para limite de tiempo
-            minutos = limite_min.value                          #Se extrae del objeto los minutos(30)
+
+            # Se busca el objeto del partido cuyo id se pasa por parámetro, para así obtener la fecha del partido
+            partido = Partido.objects.get(id=partido_id)        
+            fecha_partido = partido.fecha  
+            print(partido)                     
+            print('fp',fecha_partido)
+
+            # Se busca objeto cuyo value="30", lo 30min para limite de tiempo haciendo la conversión a segundos
+            limite_min = Configuracion.objects.get(value="30")
+            minutos = limite_min.value                          
             minutos = timedelta(minutes=int(minutos))
+            conversion_minutos = minutos.total_seconds()
             
-            if (fecha_actual + minutos) < fecha_partido:
+            print('fa',fecha_actual)
+            
+
+            # Se calcula los segundos totales de ambas fechas, tomando hour, minute and second
+            fecha_actual_s = fecha_actual.hour*3600 + fecha_actual.minute*60 + fecha_actual.second
+            fecha_partido_s = fecha_partido.hour*3600 + fecha_partido.minute*60 + fecha_partido.second
+
+            # Si la apuesta es el mismo día del partido
+            # Verifica que el tiempo en segundos esté dentroi del rango de apuesta 30 mimutos antes
+            if (fecha_actual.day==fecha_partido.day and fecha_actual.month==fecha_partido.month and fecha_actual.year==fecha_partido.year):
+                if (fecha_actual_s + conversion_minutos) < fecha_partido_s:
+                
+                    Pronostico.objects.filter(partido=partido_id, usuario=user).update( 
+                                                    pronostico_equipo_1=pronostico_equipo_1,
+                                                    pronostico_equipo_2=pronostico_equipo_2
+                                                    )
+
+                    return JsonResponse(data={}, status=status.HTTP_200_OK)
+                    
+               
+            elif fecha_actual.day < fecha_partido.day and (fecha_actual.month < fecha_partido.month or fecha_actual.month==fecha_partido.month) and fecha_actual.year==fecha_partido.year:
                 Pronostico.objects.filter(partido=partido_id, usuario=user).update( 
                                                    pronostico_equipo_1=pronostico_equipo_1,
                                                    pronostico_equipo_2=pronostico_equipo_2
                                                    )
 
                 return JsonResponse(data={}, status=status.HTTP_200_OK)
-            
+
             else:
-                return JsonResponse(data={}, status=status.HTTP_422_UNPROCESSABLE_ENTITY) # Indica que el servidor comprende el tipo de contenido de la entidad de solicitud y la sintaxis de la entidad de solicitud es correcta, pero no pudo procesar las instrucciones contenidas.
-                
+                return JsonResponse(data={}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(f"{fname} {exc_tb.tb_lineno} {e}") # esto lo vamos a mejorar con logging
+            print(f"{fname} {exc_tb.tb_lineno} {e}") 
             # HC --> ya que no retornamos ninguna información de valor,
-            # no retornemos ninguna (hay que investigar como mejorar esto)
             return JsonResponse(data={}, status=status.HTTP_400_BAD_REQUEST) 
 
 

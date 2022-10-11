@@ -10,8 +10,8 @@ headers = {
 url = "http://127.0.0.1:8000/api/v1.0/partidos/pronosticos/"
 
 data = {
-    "partido_id": 1,
-    "pronostico_equipo_1": 2,
+    "partido_id": 6,
+    "pronostico_equipo_1": 9,
     "pronostico_equipo_2": 2,
 }
 
