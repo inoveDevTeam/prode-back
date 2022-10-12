@@ -34,7 +34,7 @@ from django.db.models import Sum
 
 # Librería para trabajar con tiempo
 from datetime import timedelta, datetime
-import time
+
 
 
 class LoginUserAPIView(APIView):
@@ -166,49 +166,30 @@ class PartidosPronosticosAPIView(APIView):
             pronostico_equipo_1 = int(request.data['pronostico_equipo_1'])
             pronostico_equipo_2 = int(request.data['pronostico_equipo_2'])
             
-            fecha_actual = datetime.now()
-
+            fecha_actual = timezone.now()
+         
             # Se busca el objeto del partido cuyo id se pasa por parámetro, para así obtener la fecha del partido
             partido = Partido.objects.get(id=partido_id)        
             fecha_partido = partido.fecha 
-            fecha_partido = timezone.localtime(partido.fecha) 
-            print(partido)                     
-            print('fp',fecha_partido)
-
+            fecha_partido = timezone.localtime(partido.fecha)                    
+            
             # Se busca objeto cuyo value="30", lo 30min para limite de tiempo haciendo la conversión a segundos
-            limite_min = Configuracion.objects.get(value="30")
+            limite_min = Configuracion.objects.get(name="tiempo_cierre_apuestas")
             minutos = limite_min.value                          
             minutos = timedelta(minutes=int(minutos))
-            conversion_minutos = minutos.total_seconds()
             
-            print('fa',fecha_actual)
-            
-
-            # Se calcula los segundos totales de ambas fechas, tomando hour, minute and second
-            fecha_actual_s = fecha_actual.hour*3600 + fecha_actual.minute*60 + fecha_actual.second
-            fecha_partido_s = fecha_partido.hour*3600 + fecha_partido.minute*60 + fecha_partido.second
-
             # Si la apuesta es el mismo día del partido
             # Verifica que el tiempo en segundos esté dentroi del rango de apuesta 30 mimutos antes
-            if (fecha_actual.day==fecha_partido.day and fecha_actual.month==fecha_partido.month and fecha_actual.year==fecha_partido.year):
-                if (fecha_actual_s + conversion_minutos) < fecha_partido_s:
+            if (fecha_actual + minutos) < fecha_partido:
                 
-                    Pronostico.objects.filter(partido=partido_id, usuario=user).update( 
-                                                    pronostico_equipo_1=pronostico_equipo_1,
-                                                    pronostico_equipo_2=pronostico_equipo_2
-                                                    )
-
-                    return JsonResponse(data={}, status=status.HTTP_200_OK)
-                    
-               
-            elif fecha_actual.day < fecha_partido.day and (fecha_actual.month < fecha_partido.month or fecha_actual.month==fecha_partido.month) and fecha_actual.year==fecha_partido.year:
                 Pronostico.objects.filter(partido=partido_id, usuario=user).update( 
-                                                   pronostico_equipo_1=pronostico_equipo_1,
-                                                   pronostico_equipo_2=pronostico_equipo_2
-                                                   )
+                                                pronostico_equipo_1=pronostico_equipo_1,
+                                                pronostico_equipo_2=pronostico_equipo_2
+                                                )
 
                 return JsonResponse(data={}, status=status.HTTP_200_OK)
-
+                    
+           
             else:
                 return JsonResponse(data={}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
