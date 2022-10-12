@@ -173,7 +173,7 @@ class PartidosPronosticosAPIView(APIView):
             fecha_partido = partido.fecha 
             fecha_partido = timezone.localtime(partido.fecha)                    
             
-            # Se busca objeto cuyo value="30", lo 30min para limite de tiempo haciendo la conversión a segundos
+            # Se busca objeto por nombre= "tiempo_cierre_apuestas", lo 30min para limite de tiempo 
             limite_min = Configuracion.objects.get(name="tiempo_cierre_apuestas")
             minutos = limite_min.value                          
             minutos = timedelta(minutes=int(minutos))
