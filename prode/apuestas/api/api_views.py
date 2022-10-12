@@ -178,8 +178,8 @@ class PartidosPronosticosAPIView(APIView):
             minutos = limite_min.value                          
             minutos = timedelta(minutes=int(minutos))
             
-            # Si la apuesta es el mismo día del partido
-            # Verifica que el tiempo en segundos esté dentroi del rango de apuesta 30 mimutos antes
+           
+            # Verifica que el tiempo está dentro del rango de apuesta 30 mimutos antes
             if (fecha_actual + minutos) < fecha_partido:
                 
                 Pronostico.objects.filter(partido=partido_id, usuario=user).update( 
