@@ -76,8 +76,33 @@ class Partido(models.Model):
                 puntaje = 0
 
                 # Calcular el puntaje
+                resultado = resultado_equipo_2 - resultado_equipo_1
+                pronostico = pronostico_equipo_2 - pronostico_equipo_1
+                
+                # Verifica si no atinó a nada
+                if pronostico_equipo_2 != resultado_equipo_2 and resultado_equipo_1 != pronostico_equipo_1:
+                    puntaje = 0
 
+                # Verifica que el pronóstico fue exacto
+                elif pronostico_equipo_2 == resultado_equipo_2 and resultado_equipo_1 == pronostico_equipo_1:
+                    puntaje += 10
 
+                # Verifica si hubo empate, donde el usuario predijo el empate pero no la puntuación exacta.
+                elif resultado_equipo_1 == resultado_equipo_2 and pronostico_equipo_2 == pronostico_equipo_1 and resultado_equipo_1 != pronostico_equipo_1:
+                    puntaje += 5             
+ 
+                # Verifica si el usuario predijo el empate y la cantidad de goles exactamente.
+                elif resultado_equipo_1 == resultado_equipo_2 and pronostico_equipo_2 == pronostico_equipo_1 and resultado_equipo_1 == pronostico_equipo_1:
+                    puntaje += 10 
+                    
+                else:
+                    # Sino hubo empate, capaz la persona predijo bien quien ganó. Para eso basta con saber si
+                    # resultado y pronostico tienen el mismo signo
+                    if (resultado * pronostico) > 0:
+                        # Si ambos predijeron que el mismo equipo gana, esto tiene que dar positivo
+                        puntaje += 5
+
+                
                 # Almacenamos el puntaje calculado
                 pronostico.puntaje = puntaje
                 pronostico.save()
