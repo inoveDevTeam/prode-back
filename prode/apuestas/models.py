@@ -63,6 +63,9 @@ class Partido(models.Model):
         # Verificar si hay que calcular el puntaje
         # (si el partido ha terminado)
         if self.terminado == True:
+            puntos_resultado_exacto = int(Configuracion.objects.get(name="puntos_resultado_exacto"))
+            puntos_ganador = int(Configuracion.objects.get(name="puntos_ganador"))
+
             # Resultado del partido
             resultado_equipo_1 = self.resultado_equipo_1
             resultado_equipo_2 = self.resultado_equipo_2
@@ -85,22 +88,22 @@ class Partido(models.Model):
 
                 # Verifica que el pronóstico fue exacto
                 elif pronostico_equipo_2 == resultado_equipo_2 and resultado_equipo_1 == pronostico_equipo_1:
-                    puntaje += 10
+                    puntaje += (puntos_ganador + puntos_resultado_exacto) 
 
                 # Verifica si hubo empate, donde el usuario predijo el empate pero no la puntuación exacta.
                 elif resultado_equipo_1 == resultado_equipo_2 and pronostico_equipo_2 == pronostico_equipo_1 and resultado_equipo_1 != pronostico_equipo_1:
-                    puntaje += 5             
+                    puntaje += puntos_ganador
  
                 # Verifica si el usuario predijo el empate y la cantidad de goles exactamente.
                 elif resultado_equipo_1 == resultado_equipo_2 and pronostico_equipo_2 == pronostico_equipo_1 and resultado_equipo_1 == pronostico_equipo_1:
-                    puntaje += 10 
+                    puntaje += (puntos_ganador + puntos_resultado_exacto)
                     
                 else:
                     # Sino hubo empate, capaz la persona predijo bien quien ganó. Para eso basta con saber si
                     # resultado y pronostico tienen el mismo signo
                     if (resultado * pronostico) > 0:
                         # Si ambos predijeron que el mismo equipo gana, esto tiene que dar positivo
-                        puntaje += 5
+                        puntaje += puntos_ganador
 
                 
                 # Almacenamos el puntaje calculado
