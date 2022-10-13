@@ -191,6 +191,7 @@ class PartidosPronosticosAPIView(APIView):
                     
            
             else:
+                Partido.objects.filter(id=partido_id).update(cerrado=True)
                 return JsonResponse(data={}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
