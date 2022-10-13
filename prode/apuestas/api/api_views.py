@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import os
 import sys
 import locale
@@ -30,6 +31,10 @@ from rest_framework.authtoken.models import Token
 
 from django.utils import timezone
 from django.db.models import Sum
+
+# Librería para trabajar con tiempo
+from datetime import timedelta, datetime
+
 
 
 class LoginUserAPIView(APIView):
@@ -157,26 +162,45 @@ class PartidosPronosticosAPIView(APIView):
 
         try:
             user = request.user
-
             partido_id = int(request.data['partido_id'])
             pronostico_equipo_1 = int(request.data['pronostico_equipo_1'])
             pronostico_equipo_2 = int(request.data['pronostico_equipo_2'])
+            
+            fecha_actual = timezone.now()
          
-            Pronostico.objects.filter(partido=partido_id, usuario=user).update( 
-                                                   pronostico_equipo_1=pronostico_equipo_1,
-                                                   pronostico_equipo_2=pronostico_equipo_2
-                                                   )
-
+            # Se busca el objeto del partido cuyo id se pasa por parámetro, para así obtener la fecha del partido
+            partido = Partido.objects.get(id=partido_id)        
+            fecha_partido = partido.fecha 
+            fecha_partido = timezone.localtime(partido.fecha)                    
+            
+            # Se busca objeto por nombre= "tiempo_cierre_apuestas", lo 30min para limite de tiempo 
+            limite_min = Configuracion.objects.get(name="tiempo_cierre_apuestas")
+            minutos = limite_min.value                          
+            minutos = timedelta(minutes=int(minutos))
+            
            
-            return JsonResponse(data={}, status=status.HTTP_200_OK)
+            # Verifica que el tiempo está dentro del rango de apuesta 30 mimutos antes
+            if (fecha_actual + minutos) < fecha_partido:
+                
+                Pronostico.objects.filter(partido=partido_id, usuario=user).update( 
+                                                pronostico_equipo_1=pronostico_equipo_1,
+                                                pronostico_equipo_2=pronostico_equipo_2
+                                                )
+
+                return JsonResponse(data={}, status=status.HTTP_200_OK)
+                    
+           
+            else:
+                Partido.objects.filter(id=partido_id).update(cerrado=True)
+                return JsonResponse(data={}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
 
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(f"{fname} {exc_tb.tb_lineno} {e}") # esto lo vamos a mejorar con logging
+            print(f"{fname} {exc_tb.tb_lineno} {e}") 
             # HC --> ya que no retornamos ninguna información de valor,
-            # no retornemos ninguna (hay que investigar como mejorar esto)
-            return JsonResponse(data={}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={}, status=status.HTTP_400_BAD_REQUEST) 
 
 
 class RankingAPIView(APIView): 
