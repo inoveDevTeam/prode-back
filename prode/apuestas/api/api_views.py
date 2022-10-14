@@ -162,12 +162,20 @@ class PartidosPronosticosAPIView(APIView):
             pronostico_equipo_1 = int(request.data['pronostico_equipo_1'])
             pronostico_equipo_2 = int(request.data['pronostico_equipo_2'])
          
-            Pronostico.objects.filter(partido=partido_id, usuario=user).update( 
-                                                   pronostico_equipo_1=pronostico_equipo_1,
-                                                   pronostico_equipo_2=pronostico_equipo_2
-                                                   )
+            pronostico = Pronostico.objects.filter(partido=partido_id, usuario=user).first()
+            if pronostico is None:
+                Pronostico.objects.create(
+                    usuario = user,
+                    partido_id = partido_id,
+                    pronostico_equipo_1 = pronostico_equipo_1,
+                    pronostico_equipo_2 = pronostico_equipo_2,
+                    puntaje = 0
+                )
+            else:
+                pronostico.pronostico_equipo_1 = pronostico_equipo_1
+                pronostico.pronostico_equipo_2 = pronostico_equipo_2
+                pronostico.save()
 
-           
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         except Exception as e:
