@@ -1,0 +1,14 @@
+version: "3.1"
+
+services:
+  back:
+    build: .
+    image: prode-back:latest
+    container_name: prode-back
+    #restart: always
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./prode:/prode/back
+      - ./db:/prode/db
+    ports:
+      - "8070:8000"

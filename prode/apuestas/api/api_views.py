@@ -182,10 +182,19 @@ class PartidosPronosticosAPIView(APIView):
             # Verifica que el tiempo está dentro del rango de apuesta 30 mimutos antes
             if (fecha_actual + minutos) < fecha_partido:
                 
-                Pronostico.objects.filter(partido=partido_id, usuario=user).update( 
-                                                pronostico_equipo_1=pronostico_equipo_1,
-                                                pronostico_equipo_2=pronostico_equipo_2
-                                                )
+                pronostico = Pronostico.objects.filter(partido=partido_id, usuario=user).first()
+                if pronostico is None:
+                    Pronostico.objects.create(
+                        usuario = user,
+                        partido_id = partido_id,
+                        pronostico_equipo_1 = pronostico_equipo_1,
+                        pronostico_equipo_2 = pronostico_equipo_2,
+                        puntaje = 0
+                    )
+                else:
+                    pronostico.pronostico_equipo_1 = pronostico_equipo_1
+                    pronostico.pronostico_equipo_2 = pronostico_equipo_2
+                    pronostico.save()
 
                 return JsonResponse(data={}, status=status.HTTP_200_OK)
                     
