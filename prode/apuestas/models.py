@@ -103,6 +103,7 @@ class Partido(models.Model):
 
 
         # Guardar los cambios
+        self.cerrado = True  # cerramos el partido si ha terminado
         super().save(*args, **kwargs)
 
     class Meta:
