@@ -139,9 +139,9 @@ class PartidosPronosticosAPIView(APIView):
 
                     if match.id == partido_forecast.id: # Si el nro de partido es igual al partido apostado
                         # Actualiza en los datos los campos apostados por el usuario
-                        dict_partidos["pronostico_equipo_1"] = pronostico.pronostico_equipo_1,
-                        dict_partidos["pronostico_equipo_2" ] = pronostico.pronostico_equipo_2,
-                        dict_partidos["puntaje"] = pronostico.puntaje
+                        dict_partidos["pronostico_equipo_1"] = pronostico.pronostico_equipo_1
+                        dict_partidos["pronostico_equipo_2" ] = pronostico.pronostico_equipo_2
+                        print(dict_partidos["pronostico_equipo_1"])
                         break
 
                 data.append(dict_partidos)
@@ -222,11 +222,16 @@ class RankingAPIView(APIView):
 
             ranking = Pronostico.objects.values("usuario__username", "usuario__first_name", "usuario__last_name").annotate(puntaje_total=Sum('puntaje')).order_by("-puntaje_total")
 
-            data = {"puntaje": 0, "posicion": None, "ranking": []}
-            for i, pos in enumerate(ranking):
+            data = {"puntaje_total": 0, "posicion": None, "ranking": []}
+            i = 0
+            last_puntaje = None
+            for pos in ranking:
+                if last_puntaje is None or pos["puntaje_total"] < last_puntaje:
+                    last_puntaje = pos["puntaje_total"]
+                    i += 1
                 dict_data = {
                     "username": pos["usuario__username"],
-                    "posicion": i+1,
+                    "posicion": i,
                     "first_name": pos["usuario__first_name"],
                     "last_name": pos["usuario__last_name"],
                     "puntaje_total": pos["puntaje_total"]
@@ -235,8 +240,8 @@ class RankingAPIView(APIView):
 
                 if pos["usuario__username"] == user.username:
                     print(pos)
-                    data["puntaje"] = pos["puntaje_total"]
-                    data["posicion"] = i+1
+                    data["puntaje_total"] = pos["puntaje_total"]
+                    data["posicion"] = i
 
             return JsonResponse(data, status=status.HTTP_200_OK)
 
