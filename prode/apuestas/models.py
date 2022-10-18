@@ -63,9 +63,8 @@ class Partido(models.Model):
         # Verificar si hay que calcular el puntaje
         # (si el partido ha terminado)
         if self.terminado == True:
-            puntos_resultado_exacto = int(Configuracion.objects.get(name="puntos_resultado_exacto"))
-            puntos_ganador = int(Configuracion.objects.get(name="puntos_ganador"))
-
+            puntos_resultado_exacto = int(Configuracion.objects.get(name="puntos_resultado_exacto").value)
+            puntos_ganador = int(Configuracion.objects.get(name="puntos_ganador").value)
             # Resultado del partido
             resultado_equipo_1 = self.resultado_equipo_1
             resultado_equipo_2 = self.resultado_equipo_2
@@ -73,31 +72,23 @@ class Partido(models.Model):
             # Buscar todos las apuestas hechas sobre este partido
             # y computar el puntaje
             pronosticos = Pronostico.objects.filter(partido__id=self.id)
-            for pronostico in pronosticos:
-                pronostico_equipo_1 = pronostico.pronostico_equipo_1
-                pronostico_equipo_2 = pronostico.pronostico_equipo_2
+            for p in pronosticos:
+                pronostico_equipo_1 = p.pronostico_equipo_1
+                pronostico_equipo_2 = p.pronostico_equipo_2
                 puntaje = 0
 
                 # Calcular el puntaje
                 resultado = resultado_equipo_2 - resultado_equipo_1
                 pronostico = pronostico_equipo_2 - pronostico_equipo_1
                 
-                # Verifica si no atinó a nada
-                if pronostico_equipo_2 != resultado_equipo_2 and resultado_equipo_1 != pronostico_equipo_1:
-                    puntaje = 0
-
                 # Verifica que el pronóstico fue exacto
-                elif pronostico_equipo_2 == resultado_equipo_2 and resultado_equipo_1 == pronostico_equipo_1:
+                if pronostico_equipo_2 == resultado_equipo_2 and resultado_equipo_1 == pronostico_equipo_1:
                     puntaje += (puntos_ganador + puntos_resultado_exacto) 
 
                 # Verifica si hubo empate, donde el usuario predijo el empate pero no la puntuación exacta.
                 elif resultado_equipo_1 == resultado_equipo_2 and pronostico_equipo_2 == pronostico_equipo_1 and resultado_equipo_1 != pronostico_equipo_1:
                     puntaje += puntos_ganador
  
-                # Verifica si el usuario predijo el empate y la cantidad de goles exactamente.
-                elif resultado_equipo_1 == resultado_equipo_2 and pronostico_equipo_2 == pronostico_equipo_1 and resultado_equipo_1 == pronostico_equipo_1:
-                    puntaje += (puntos_ganador + puntos_resultado_exacto)
-                    
                 else:
                     # Sino hubo empate, capaz la persona predijo bien quien ganó. Para eso basta con saber si
                     # resultado y pronostico tienen el mismo signo
@@ -107,11 +98,12 @@ class Partido(models.Model):
 
                 
                 # Almacenamos el puntaje calculado
-                pronostico.puntaje = puntaje
-                pronostico.save()
+                p.puntaje = puntaje
+                p.save()
 
 
         # Guardar los cambios
+        self.cerrado = True  # cerramos el partido si ha terminado
         super().save(*args, **kwargs)
 
     class Meta:
