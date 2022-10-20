@@ -63,6 +63,7 @@ class Partido(models.Model):
         # Verificar si hay que calcular el puntaje
         # (si el partido ha terminado)
         if self.terminado == True:
+            self.cerrado = True  # cerramos el partido si ha terminado
             puntos_resultado_exacto = int(Configuracion.objects.get(name="puntos_resultado_exacto").value)
             puntos_ganador = int(Configuracion.objects.get(name="puntos_ganador").value)
             # Resultado del partido
@@ -103,7 +104,6 @@ class Partido(models.Model):
 
 
         # Guardar los cambios
-        self.cerrado = True  # cerramos el partido si ha terminado
         super().save(*args, **kwargs)
 
     class Meta:
