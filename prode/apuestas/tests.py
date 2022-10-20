@@ -5,7 +5,7 @@ from django.test import Client
 
 # Create your tests here.
 
-class MiClaseDePrueba(TestCase):
+class TestModeloPronostico(TestCase):
     '''Clase de prueba para hacer Unit Test sobre los modelos de la base de datos.'''
 
     usuario = "Luna"
@@ -61,7 +61,7 @@ class MiClaseDePrueba(TestCase):
 
 
 
-class PruebaDeAPIs(TestCase):
+class TestAPIs(TestCase):
     '''
     Test para las APIs del sistema, utilizaremos una DB y un server de prueba.
     '''
