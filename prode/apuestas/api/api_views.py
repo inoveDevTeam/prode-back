@@ -141,7 +141,7 @@ class PartidosPronosticosAPIView(APIView):
                         # Actualiza en los datos los campos apostados por el usuario
                         dict_partidos["pronostico_equipo_1"] = pronostico.pronostico_equipo_1
                         dict_partidos["pronostico_equipo_2" ] = pronostico.pronostico_equipo_2
-                        print(dict_partidos["pronostico_equipo_1"])
+                        dict_partidos["puntaje"] = pronostico.puntaje
                         break
 
                 data.append(dict_partidos)
