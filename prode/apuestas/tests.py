@@ -1,129 +1,106 @@
-from django.test import TestCase
-from apuestas import models
+from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
-from django.test import Client
+from rest_framework import status
+# ---
+from django.contrib.auth import get_user_model
+from rest_framework.authtoken.models import Token
+from .models import *
+# from django.test import Client
 
-# Create your tests here.
+  
 
-class TestModeloPronostico(TestCase):
-    '''Clase de prueba para hacer Unit Test sobre los modelos de la base de datos.'''
-
-    usuario = "Luna"
-    partido = 4
-    pronostico_equipo_1 = 2
-    pronostico_equipo_2 = 0
-    puntaje = 0
-
-    '''Aquí configuramos las condiciones de la prueba, por lo general insertamos a la DB'''
+class TestLoginAPIViewTestCase(APITestCase):
     
     def setUp(self):
-        pronostico = models.Pronostico.objects.create(
-            id = 18,
-            usuario = self.usuario,
-            partido = self.partido,
-            pronostico_equipo_1 = self.pronostico_equipo_1,
-            pronostico_equipo_2 = self.pronostico_equipo_2,
-            puntaje = self.puntaje,
+        '''Inicialización de la clase'''
+
+        # La ruta de login (tambien se puede usar revere())
+        self.login_url = '/login/'
+
+        # Se crea el usuario
+        self.user = User(
+                        username="test", 
+                        password="prode1234"
+                        )
+        self.user.save()
+
+        # Para realizar las peticiones, viene incorporada el apitestcase y no hay que definirla
+        # post recibe la ruta, la data que se le va a enviar y el formato
+        response = self.client.post(
+            self.login_url,
+            {
+                'username':"test",
+                'password':"prode1234"
+            },
+            format='json'
         )
 
-    def test_pruebas_de_integridad_de_datos(self):
-        '''
-        Este método realiza la prueba de integridad de los dato insertados en la base de datos, 
-        aprovechando "self.atributo" para verificarlos. 
-        '''
-        # Llamamos al objeto seteado:
-        pronostico = models.Pronostico.objects.get(id=18)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED) # El código de respuesta cuando se crea un user es 201
+        
+        #self.token = response.data['token'] # sino funciona usar user_data en vez de data
+        # A esta instancia setear la autorización con el token
+        #self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        return super().setUp()
 
-        # Extraemos sus atributos:
-        usuario = pronostico.usuario,
-        partido = pronostico.partido,
-        pronostico_equipo_1 = pronostico.pronostico_equipo_1,
-        pronostico_equipo_2 = pronostico.pronostico_equipo_2,
-        puntaje = pronostico.puntaje
-
-        # Generamos dos listas para compararlas, una con los datos extraidos del modelo
-        # y otra con los datos que fueron insertados en el modelo
-        object_values = [usuario, partido, pronostico_equipo_1, pronostico_equipo_2, puntaje]
-
-        test_values = [self.usuario, self.partido,
-                       self.pronostico_equipo_1, self.pronostico_equipo_2, self.puntaje]
-
-        # Comparamos uno a uno los datos:
-        for index in range(len(test_values)):
-            print(object_values[index], test_values[index])
-
-            if object_values[index] != test_values[index]:
-                # Si los datos son distintos, hacemos que la prueba de fallida:
-                self.assertEqual(object_values[index], test_values[index])
-                
-        # Si los datos son iguales, verificamos que las pruebas son exitosas:
-        self.assertTrue(True)
+    def test_login(self):
+        pass
+        # print(self.token)
 
 
 
-class TestAPIs(TestCase):
-    '''
-    Test para las APIs del sistema, utilizaremos una DB y un server de prueba.
-    '''
-    # NOTE: Configuramos los atributos de la clase para utilizarlos en todos los métodos:
-    username = 'root'
-    password = '12345'
-    email = 'algo@algo.com'
-    user = None
-    pronostico = None
+# class TestAPIViewTestCase(APITestCase):
+        
+#     # nombre = 'test'
+#     # password = '12345'
+#     partido = 3
+#     pronostico_equipo_1 = 2,
+#     pronostico_equipo_2 = 2,
+#     puntaje = 0
+#     user = User(username='test', password='prode1234')
+#     user.save()
 
-    # Client() es un objeto que gestiona la conexión con los endpoints, como lo haría un request
-    client = Client()
+#     def setUp(self):
+#         self.login_url = '/partidos/pronosticos'
+            
+#         # Creamos un superusuario para las pruebas:
+#         #self.user = User.objects.create_superuser(self.nombre, self.password)
 
-    def setUp(self):
-        '''
-        Aquí configuramos las condiciones de la prueba, 
-        creamos un pronostico y generamos la conexión al server de prueba
-        NOTE: Aquí debemos crear los objetos para la base de datos de prueba, 
-        de lo contrario, se insertarán en la base de datos del sistema.
-        '''
+#         # Ahora lo autenticamos en el servidor de pruebas:
+#         self.client.login(username=self.user.username, password=self.user.password)
 
-        # NOTE: Creamos un superusuario para las pruebas:
-        self.user = User.objects.create_superuser(self.username, self.email, self.password)
+#         # Insertamos un pronostico en la DB de prueba:
+#         self.pronostico = Pronostico.objects.create(
+#             usuario = self.user.username,
+#             partido = self.partido,
+#             pronostico_equipo_1 = self.pronostico_equipo_1,
+#             pronostico_equipo_2 = self.pronostico_equipo_2,
+#             puntaje = self.puntaje
+#         )
 
-        # Ahora lo autenticamos en el servidor de pruebas:
-        self.client.login(username=self.username, password=self.password)
+#     def test_api_partidos_pronosticos(self):
+#         '''
+#         Test de endpoint: partidos/pronosticos/
+#         Pruebas sobre todos los métodos.
+#         '''
 
-        # Insertamos un pronostico en la DB de prueba:
-        self.pronostico = models.Pronostico.objects.create(
-            id = 3,
-            usuario = "Martes",
-            partido = 8,
-            pronostico_equipo_1 = 2,
-            pronostico_equipo_2 = 2,
-            puntaje = 0
-        )
+#         # Preparamos los datos:
+#         endpoint = '/partidos/pronosticos/'
+#         data = {
+#             'usuario': self.user.username,
+#             'partido': self.partido,
+#             'pronostico_equipo_1': self.pronostico_equipo_1,
+#             'pronostico_equipo_2': self.pronostico_equipo_2,
+#             'puntaje': self.puntaje
+#         }
 
-    def test_api_partidos_pronosticos(self):
-        '''
-        Test de endpoint: partidos/pronosticos/
-        Pruebas sobre todos los métodos.
-        '''
+#         # GET test:
+#         resp = self.client.get(endpoint)
+#         self.assertEqual(resp.status_code, status.HTTP_200_OK) 
 
-        # Preparamos los datos:
-        endpoint = '/partidos/pronosticos/'
-        data = {
-            'id': 4,
-            'usuario': 'Martes',
-            'partido': 8,
-            'pronostico_equipo_1': 2,
-            'pronostico_equipo_2': 2,
-            'puntaje': 0
-        }
-
-        # GET test:
-        resp = self.client.get(endpoint)
-        self.assertEqual(resp.status_code, 200) 
-
-        # POST test:
-        resp = self.client.post(
-            endpoint, data, content_type="application/json")
-        self.assertEqual(resp.status_code, 201)
+#         # POST test:
+#         resp = self.client.post(
+#             endpoint, data, content_type="application/json")
+#         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
 
   

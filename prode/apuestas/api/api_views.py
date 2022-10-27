@@ -97,7 +97,7 @@ class PartidosPronosticosAPIView(APIView):
         try:  
             # El usuario lo sacamos del request, 
             user = request.user  
-
+            
             data = []
             
             # Buscar todas los partidos
