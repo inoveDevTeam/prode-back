@@ -10,9 +10,6 @@ with open("../mock_data/mundial.csv") as fi:
     data = list(csv.DictReader(fi))
 
 admin = User.objects.create_user("admin", password="prode1234", is_staff=True, is_superuser=True)
-hernan = User.objects.create_user("hernan", password="prode1234")
-johana = User.objects.create_user("johana", password="prode1234")
-santiago = User.objects.create_user("santiago", password="prode1234")
 
 Configuracion.objects.create(
     name="puntos_ganador",
@@ -33,7 +30,7 @@ Configuracion.objects.create(
     )
 
 
-torneo = Torneo.objects.create(name="Mundial Qatar 2022")
+torneo = Torneo.objects.create(name="Qatar 2022")
 
 equipos = []
 for row in data:
