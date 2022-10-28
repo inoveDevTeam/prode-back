@@ -37,7 +37,7 @@ server {
     }
 
     location /staticfiles/ {
-        alias /home/prode-back/prode/staticfiles/;
+        alias /home/prode-back-fmt/prode/staticfiles/;
     }
 
     # probar si esto sirve
@@ -47,7 +47,7 @@ server {
     }
 
     location / {
-        root /home/prode-front/fmt/build;
+        root /home/prode-front-fmt/build;
         #return 301 /admin;
         # First attempt to serve request as file, then
         # as directory, then fall back to displaying a 404.
