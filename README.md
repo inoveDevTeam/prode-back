@@ -30,3 +30,8 @@ Lanzar:
 ```sh
 ./nginx/enable.sh <entorno>
 ```
+
+### Lanzar Docker en produccion
+```sh
+docker-compose -f <archivo.yml> up
+```
