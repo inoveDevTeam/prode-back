@@ -9,6 +9,6 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./prode:/prode/back
-      - ./dbfmt:/prode/db
+      - ./fmt/db:/prode/db
     ports:
       - "8071:8000"
