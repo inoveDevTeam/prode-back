@@ -24,3 +24,9 @@ Ingresar a la carpeta donde se encuentre "manage.py" y ejecutar:
 ```sh
 python manage.py runserver 0.0.0.0:8000
 ```
+
+### Configurar NGINX
+Lanzar:
+```sh
+./nginx/enable.sh <entorno>
+```
