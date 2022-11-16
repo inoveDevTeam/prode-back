@@ -14,7 +14,7 @@ from apuestas.models import *
 
 # Importamos librerías para gestionar los permisos de acceso a nuestras APIs
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.authentication import BasicAuthentication
 
 # Importamos librerías para seleccionar el tipo de API
@@ -29,12 +29,15 @@ from rest_framework.parsers import JSONParser
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 
-from django.utils import timezone
+# Importamos librerías de manejo de la base de datos
+from django.db import connection, transaction
 from django.db.models import Sum
 
 # Librería para trabajar con tiempo
 from datetime import timedelta, datetime
+from django.utils import timezone
 
+from tools.inove_email import send_generic_email
 
 
 class LoginUserAPIView(APIView):
@@ -252,3 +255,69 @@ class RankingAPIView(APIView):
             # HC --> ya que no retornamos ninguna información de valor,
             # no retornemos ninguna (hay que investigar como mejorar esto)
             return JsonResponse(data={}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserAPIView(APIView):
+    """lista de partidos apostados y no apostados"""
+
+    permission_classes = (IsAdminUser,)
+    parser_classes = (JSONParser,)
+
+    @transaction.atomic
+    def post(self, request):
+        """ Crear un nuevo usuario """
+
+        try:
+            username = str(request.data['username'])
+            password = str(request.data['password'])
+            email = str(request.data['email'])
+            first_name = str(request.data['first_name'])
+            last_name = str(request.data['last_name'])
+
+            try:
+                User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                    )
+            except Exception as e:
+                transaction.set_rollback(True)
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print(f"{fname} {exc_tb.tb_lineno} {e}")
+                # HC --> ya que no retornamos ninguna información de valor,
+                return JsonResponse(data={"error": f"Ya existe el usuario {username} {email}"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+            titulo = "¡Bienvendo/a al Prode FMT!"
+            message = f'''
+            ¡Bienvenido/a {first_name} {last_name}!
+            Sus credenciales de acceso (usuario y contraseña) al prode son:
+
+            {username}
+            {password}
+
+            Link para acceder al prode:
+            prodefmt.inove.com.ar
+
+            Recuerde logearse al sistema para poder ver los partidos y hacer su pronóstico.
+            ¡Cualquier duda nos escribe!
+
+            Saludos, inove - Coding School
+            '''
+            if send_generic_email("jcarugno@inove.com.ar", [email], titulo, message) == False:
+                transaction.set_rollback(True)
+                return JsonResponse(data={"error": f"No se pudo enviar el email a {username} {email}"}, status=status.HTTP_400_BAD_REQUEST)
+
+            return JsonResponse(data={}, status=status.HTTP_201_CREATED)
+
+
+        except Exception as e:
+            transaction.set_rollback(True)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(f"{fname} {exc_tb.tb_lineno} {e}")
+            # HC --> ya que no retornamos ninguna información de valor,
+            return JsonResponse(data={}, status=status.HTTP_400_BAD_REQUEST)
+
