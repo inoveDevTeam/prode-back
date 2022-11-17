@@ -63,6 +63,28 @@ class LoginUserAPIView(APIView):
             # NOTE: es importante el uso de este método, porque aplica el hash del password!
             account = authenticate(username=username, password=password)
 
+            if not account:
+                import requests
+                token = '7dcaca05340b4b3da9c06b066d118c45ff83aa91'
+                headers = {
+                    'Authorization': f'Token {token}',
+                    "Content-Type": "application/json"
+                }
+                url = f'http://23.92.69.190:80/administracion/usuarios/detail/'
+                payload = {'username': username}
+                res = requests.get(url, params=payload, headers=headers )
+                if res.ok == True:
+                    inove_user = res.json()
+                    inove_user_password = str(inove_user["dni"])
+                    if inove_user_password == password:
+                        account = User.objects.create_user(
+                        username=username,
+                        email=inove_user["email"],
+                        password=inove_user_password,
+                        first_name=inove_user["first_name"],
+                        last_name=inove_user["last_name"],
+                        )
+
             if account:
                 # Si el usuario existe y sus credenciales son validas,
                 # obtener el TOKEN:
@@ -82,7 +104,10 @@ class LoginUserAPIView(APIView):
                 user_data['error_message'] = 'Credenciales invalidas'
                 return JsonResponse(user_data, status=status.HTTP_401_UNAUTHORIZED)
 
-        except Exception as error:
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(f"{fname} {exc_tb.tb_lineno} {e}") # esto lo vamos a mejorar con logging
             # Si aparece alguna excepción, devolvemos un mensaje de error
             user_data['response'] = 'Error'
             #user_data['error_message'] = error
