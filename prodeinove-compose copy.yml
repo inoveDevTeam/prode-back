@@ -1,0 +1,14 @@
+version: "3.1"
+
+services:
+  back:
+    build: .
+    image: prode-back-inove:latest
+    container_name: prode-back-inove
+    restart: always
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./prode:/prode/back
+      - ./inove/db:/prode/db
+    ports:
+      - "8072:8000"
