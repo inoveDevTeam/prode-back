@@ -331,7 +331,7 @@ class UserAPIView(APIView):
 
             Saludos, inove - Coding School
             '''
-            if send_generic_email("jcarugno@inove.com.ar", [email], titulo, message) == False:
+            if send_generic_email("alumnos@inove.com.ar", [email], titulo, message) == False:
                 transaction.set_rollback(True)
                 return JsonResponse(data={"error": f"No se pudo enviar el email a {username} {email}"}, status=status.HTTP_400_BAD_REQUEST)
 
