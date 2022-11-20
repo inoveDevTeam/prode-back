@@ -315,7 +315,7 @@ class UserAPIView(APIView):
                 # HC --> ya que no retornamos ninguna información de valor,
                 return JsonResponse(data={"error": f"Ya existe el usuario {username} {email}"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-            titulo = "¡Bienvendo/a al Prode FMT!"
+            titulo = "¡Bienvendo/a al Prode Inove!"
             message = f'''
             ¡Bienvenido/a {first_name} {last_name}!
             Sus credenciales de acceso (usuario y contraseña) al prode son:
@@ -324,7 +324,7 @@ class UserAPIView(APIView):
             {password}
 
             Link para acceder al prode:
-            prodefmt.inove.com.ar
+            prode.inove.com.ar
 
             Recuerde logearse al sistema para poder ver los partidos y hacer su pronóstico.
             ¡Cualquier duda nos escribe!
