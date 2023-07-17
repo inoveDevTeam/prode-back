@@ -1,4 +1,4 @@
-from apuestas.models import *
+from prode.apuestas.models import *
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import datetime
@@ -7,6 +7,8 @@ admin = User.objects.create_user("admin", password="prode1234", is_staff=True, i
 hernan = User.objects.create_user("hernan", password="prode1234")
 johana = User.objects.create_user("johana", password="prode1234")
 santiago = User.objects.create_user("santiago", password="prode1234")
+
+
 
 Configuracion.objects.create(
     name="puntos_ganador",
