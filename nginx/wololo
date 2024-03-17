@@ -12,7 +12,7 @@ server {
     ssl_certificate /etc/letsencrypt/live/inovecode.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/inovecode.com/privkey.pem;
 
-    server_name wololo.inove.com.ar;
+    server_name wololo.inovecode.com;
     
     # Probar que se logea
     access_log /var/log/nginx/access.log;
