@@ -9,10 +9,10 @@ server {
 	# SSL configuration
     listen 443 ssl;
 	listen [::]:443 ssl;
-    ssl_certificate /etc/ssl/inove.com.ar/fullchain.pem;
-    ssl_certificate_key /etc/ssl/inove.com.ar/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/inovecode.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/inovecode.com/privkey.pem;
 
-	server_name wololo.inove.com.ar;
+    server_name wololo.inove.com.ar;
     
     # Probar que se logea
     access_log /var/log/nginx/access.log;
