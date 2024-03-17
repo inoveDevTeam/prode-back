@@ -10,5 +10,6 @@ services:
     volumes:
       - ./prode:/prode/back
       - ./db:/prode/db
+      - ./mock_data:/opt/mock_data
     ports:
       - "8070:8000"
